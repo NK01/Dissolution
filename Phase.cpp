@@ -61,22 +61,22 @@ void Phase::Diffusion(double dt)
             if (i == 0)
             {
                 a[i] = 0;
-                b[i] = 1 + 2 * diffusivity[j][i + 1] * temp / deltax[j][i] / deltax[j][i];
-                c[i] = -2 * diffusivity[j][i + 1] * temp / deltax[j][i] / deltax[j][i];
+                b[i] = 1 + 2 * diffusivity[j][i + 1] * temp / deltax[j][i] / deltax[j][i] / lengthOfPhase / lengthOfPhase;
+                c[i] = -2 * diffusivity[j][i + 1] * temp / deltax[j][i] / deltax[j][i] / lengthOfPhase / lengthOfPhase;
                 d[i] = concentration[j][i];
             }
             else if (i == numberOfSolutes - 1)
             {
-                a[i] = -2 * diffusivity[j][i] * temp / deltax[j][i] / deltax[j][i];
-                b[i] = 1 + 2 * diffusivity[j][i] * temp / deltax[j][i] / deltax[j][i];
+                a[i] = -2 * diffusivity[j][i] * temp / deltax[j][i] / deltax[j][i] / lengthOfPhase / lengthOfPhase;
+                b[i] = 1 + 2 * diffusivity[j][i] * temp / deltax[j][i] / deltax[j][i] / lengthOfPhase / lengthOfPhase;
                 c[i] = 0;
                 d[i] = concentration[j][i];
             }
             else
             {
-                a[i] = -diffusivity[j][i] * temp / (deltax[j][i - 1] * (deltax[j][i - 1] + deltax[j][i]) / 2);
-                b[i] = 1 + (diffusivity[j][i + 1] + diffusivity[j][i]) * temp * (1 / deltax[j][i - 1] + 1 / deltax[j][i]) / ((deltax[j][i - 1] + deltax[j][i]) / 2);
-                c[i] = -diffusivity[j][i + 1] * temp / (deltax[j][i] * (deltax[j][i - 1] + deltax[j][i]) / 2);
+                a[i] = -diffusivity[j][i] * temp / (deltax[j][i - 1] * (deltax[j][i - 1] + deltax[j][i]) / 2) / lengthOfPhase / lengthOfPhase;
+                b[i] = 1 + (diffusivity[j][i + 1] + diffusivity[j][i]) * temp * (1 / deltax[j][i - 1] + 1 / deltax[j][i]) / ((deltax[j][i - 1] + deltax[j][i]) / 2) / lengthOfPhase / lengthOfPhase;
+                c[i] = -diffusivity[j][i + 1] * temp / (deltax[j][i] * (deltax[j][i - 1] + deltax[j][i]) / 2) / lengthOfPhase / lengthOfPhase;
                 d[i] = concentration[j][i];
             }
         }

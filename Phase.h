@@ -5,6 +5,9 @@
 
 class Phase
 {
+    
+public:
+
     // The number of Solute Elements in the phase
     int numberOfSolutes;
 
@@ -34,8 +37,6 @@ class Phase
 
     // The length of the single control volume
 	std::vector<std::vector<double>> deltax;
-
-public:
 
     // Default Constructor
 	Phase();
