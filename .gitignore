@@ -40,10 +40,11 @@
 *.x86_64
 *.hex
 
-# Excel files
+# Excel and pdf files
 *.csv
 *.xls
 *.xlsx
+*.pdf
 
 #Extra python stuffs
 .venv
