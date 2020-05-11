@@ -44,12 +44,16 @@ public:
 	//Phase(int nConc);
 
     // Constructor which takes number of control volumes and number of elements as argument
-	//Phase(int nConc, int nElements);
+	Phase(int nElements, int nCont);
+
+    // Constructor which takes number of elements, number of control volumes and length of the phase as argument
+	Phase(int nElements, int nCont, double length);
 
     // Default destructor
 	//~Phase();
 
-	void Diffusion(double dt, double y, int index);
+    // Function to perform diffusion for all the elements inside the phase
+	void Diffusion(double dt);
 };
 
 #endif // !PHASE_H_MAY_2020

@@ -18,10 +18,26 @@ Phase::Phase()
     
 }
 
-void Phase::Diffusion(double dt, double y, int index)
+// Constructor which takes number of control volumes and number of elements as argument
+Phase::Phase(int nElements, int nCont)
 {
-    //concentration[index] = y;
+    numberOfSolutes = nElements;
+	numberOfControlVolumes = nCont;
+    lengthOfPhase = 100; // in microns
 
+    backGradient = std::vector <double>(numberOfSolutes);
+    frontGradient = std::vector <double>(numberOfSolutes);
+    backEquilibConc = std::vector <double>(numberOfSolutes);
+    frontEquilibConc = std::vector <double>(numberOfSolutes);
+
+    diffusivity = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
+    concentration = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
+    deltax = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
+    
+}
+
+void Phase::Diffusion(double dt)
+{
 	double *a;
     double *b;
     double *c;
@@ -58,9 +74,9 @@ void Phase::Diffusion(double dt, double y, int index)
             }
             else
             {
-                a[i] = -D[i] * temp / (deltax[i - 1] * (deltax[i - 1] + deltax[i]) / 2);
-                b[i] = 1 + (D[i + 1] + D[i]) * temp * (1 / deltax[i - 1] + 1 / deltax[i]) / ((deltax[i - 1] + deltax[i]) / 2);
-                c[i] = -D[i + 1] * temp / (deltax[i] * (deltax[i - 1] + deltax[i]) / 2);
+                a[i] = -diffusivity[j][i] * temp / (deltax[j][i - 1] * (deltax[j][i - 1] + deltax[j][i]) / 2);
+                b[i] = 1 + (diffusivity[j][i + 1] + diffusivity[j][i]) * temp * (1 / deltax[j][i - 1] + 1 / deltax[j][i]) / ((deltax[j][i - 1] + deltax[j][i]) / 2);
+                c[i] = -diffusivity[j][i + 1] * temp / (deltax[j][i] * (deltax[j][i - 1] + deltax[j][i]) / 2);
                 d[i] = concentration[j][i];
             }
         }
@@ -69,22 +85,22 @@ void Phase::Diffusion(double dt, double y, int index)
         cnew[0] = c[0] / b[0];
         dnew[0] = d[0] / b[0];
 
-        for (int i = 1; i < N + 2; i++)
+        for (int i = 1; i < numberOfControlVolumes; i++)
         {
             cnew[i] = c[i] / (b[i] - a[i] * cnew[i - 1]);
             dnew[i] = (d[i] - a[i] * dnew[i - 1]) / (b[i] - a[i] * cnew[i - 1]);
         }
 
         // Back Substitution
-        phi[N + 1] = dnew[N + 1];
+        concentration[j][numberOfControlVolumes - 1] = dnew[numberOfControlVolumes - 1];
 
-        for (int i = N; i >= 0; i--)
+        for (int i = numberOfControlVolumes - 1; i >= 0; i--)
         {
-            phi[i] = dnew[i] - cnew[i] * phi[i + 1];
+            concentration[j][i] = dnew[i] - cnew[i] * concentration[j][i + 1];
         }
 
-        back_gradient = (3 * phi[N + 1] - 4 * phi[N] + phi[N - 1]) / 2 / db;
-        front_gradient = (-3 * phi[0] + 4 * phi[1] - phi[2]) / 2 / db;
+        backGradient[j] = (3 * concentration[j][numberOfControlVolumes - 1] - 4 * concentration[j][numberOfControlVolumes - 2] + concentration[j][numberOfControlVolumes - 3]) / 2 / deltax[j][numberOfControlVolumes - 1] / lengthOfPhase;
+        frontGradient[j] = (-3 * concentration[j][0] + 4 * concentration[j][1] - concentration[j][2]) / 2 / deltax[j][0] / lengthOfPhase;
 
     }
 
