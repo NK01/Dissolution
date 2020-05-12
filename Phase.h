@@ -42,7 +42,7 @@ public:
 	Phase();
 
     // Constructor which takes number of control volumes as argument
-	//Phase(int nConc);
+	Phase(int nElements);
 
     // Constructor which takes number of control volumes and number of elements as argument
 	Phase(int nElements, int nCont);

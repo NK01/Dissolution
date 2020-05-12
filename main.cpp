@@ -27,8 +27,10 @@ int main()
 	strcpy(deltaFilename, "deltax_profile.txt");
     strcpy(diffusivityFilename, "diffusivity_profile.txt");
 
+    // The FCC phase
     Phase FCC;
 
+    // Length of FCC phase
     FCC.lengthOfPhase = 100e-6;
 
     // FileStream Input for reading from the file
@@ -44,40 +46,68 @@ int main()
 
     in.close();
 
-    in.open(deltaFilename);
+    // The Laves phase
+    Phase Laves;
 
-    for (int i = 0; i < FCC.numberOfControlVolumes; i++)
-    {
-        in >> FCC.deltax[0][i];
-    }
+    // Length of Laves phase
+    Laves.lengthOfPhase = 100e-6;
 
-    in.close();
-
-    in.open(diffusivityFilename);
-
-    for (int i = 0; i < FCC.numberOfControlVolumes; i++)
-    {
-        in >> FCC.diffusivity[0][i];
-    }
-
-    in.close();
-
-    out.open("Initial_Conc.txt");
-    
-    for (int i = 0; i < FCC.numberOfControlVolumes; i++)
-    {
-        out << "C[" << i << "]: " << FCC.concentration[0][i] << "\n";
-    }
-
-    out.close();
-
-    double totalTime = 60 * 60;
-    double t = 0;
-    double dt = 1e-2;
+    double totalTime{ 60 * 60 };
+    double t{ 0 };
+    double dt{ 1e-2 };
+    double v{ 0 };
 
     while (t < totalTime)
     {
-        FCC.Diffusion(dt);
+        if (FCC.lengthOfPhase > 0 && Laves.lengthOfPhase > 0)
+		{
+			v = (-Laves.diffusivity[0][0] * Laves.backGradient[0] * Laves.lengthOfPhase);
+			v = v - (-FCC.diffusivity[0][0] * FCC.backGradient[0] * FCC.lengthOfPhase);
+			//v = v / (y2 - y1);
+
+			//x1old = x1;
+			//x1 = x1 + (v * dt - 0);
+
+			//x2old = x2;
+			//x2 = x2 + (0 - v * dt);
+
+			//bcc.set_length(x1);
+			//hcp.set_length(x1);
+			//fcc.set_length(x2);
+
+			FCC.Diffusion(dt);
+            Laves.Diffusion(dt);
+
+			//hcp.add_precip(x1old);
+		}
+		else
+		{
+			if (FCC.lengthOfPhase <= 0)
+			{
+				FCC.lengthOfPhase = 0;
+				//Laves.lengthOfPhase = L - x1;
+
+				//bcc.set_length(x1);
+				//hcp.set_length(x1);
+				//fcc.set_length(x2);
+
+				// Calculate Internal Diffusion
+				Laves.Diffusion(dt);
+			}
+			else
+			{
+				Laves.lengthOfPhase = 0;
+				//x1 = L - x2;
+
+				//bcc.set_length(x1);
+				//hcp.set_length(x1);
+				//fcc.set_length(x2);
+
+				// Calculate Internal Diffusion
+				FCC.Diffusion(dt);
+			}
+
+		}
 
         t = t + dt;
     }

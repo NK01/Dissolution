@@ -3,8 +3,26 @@
 // Default Constructor
 Phase::Phase()
 {
-    numberOfSolutes = 5;
+    numberOfSolutes = 1;
 	numberOfControlVolumes = 1000;
+    lengthOfPhase = 100; // in microns
+
+    backGradient = std::vector <double>(numberOfSolutes);
+    frontGradient = std::vector <double>(numberOfSolutes);
+    backEquilibConc = std::vector <double>(numberOfSolutes);
+    frontEquilibConc = std::vector <double>(numberOfSolutes);
+
+    diffusivity = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
+    concentration = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
+    deltax = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
+    
+}
+
+// Constructor which takes number of control volumes as argument
+Phase::Phase(int nElements)
+{
+    numberOfSolutes = nElements;
+	numberOfControlVolumes = 100;
     lengthOfPhase = 100; // in microns
 
     backGradient = std::vector <double>(numberOfSolutes);
@@ -38,21 +56,14 @@ Phase::Phase(int nElements, int nCont)
 
 void Phase::Diffusion(double dt)
 {
-	double *a;
-    double *b;
-    double *c;
-    double *d;
-    double *cnew;
-    double *dnew;
-
     double temp = dt / lengthOfPhase / lengthOfPhase;
 
-	a = new double[numberOfControlVolumes];
-	b = new double[numberOfControlVolumes];
-	c = new double[numberOfControlVolumes];
-	d = new double[numberOfControlVolumes];
-	cnew = new double[numberOfControlVolumes];
-	dnew = new double[numberOfControlVolumes];
+	double *a = new double[numberOfControlVolumes];
+	double *b = new double[numberOfControlVolumes];
+	double *c = new double[numberOfControlVolumes];
+	double *d = new double[numberOfControlVolumes];
+	double *cnew = new double[numberOfControlVolumes];
+	double *dnew = new double[numberOfControlVolumes];
 
     for (int j = 0; j < numberOfSolutes; j++)
     {
@@ -61,22 +72,22 @@ void Phase::Diffusion(double dt)
             if (i == 0)
             {
                 a[i] = 0;
-                b[i] = 1 + 2 * diffusivity[j][i + 1] * temp / deltax[j][i] / deltax[j][i] / lengthOfPhase / lengthOfPhase;
-                c[i] = -2 * diffusivity[j][i + 1] * temp / deltax[j][i] / deltax[j][i] / lengthOfPhase / lengthOfPhase;
+                b[i] = 1 + 2 * diffusivity[j][i + 1] * temp / deltax[j][i] / deltax[j][i];
+                c[i] = -2 * diffusivity[j][i + 1] * temp / deltax[j][i] / deltax[j][i];
                 d[i] = concentration[j][i];
             }
             else if (i == numberOfSolutes - 1)
             {
-                a[i] = -2 * diffusivity[j][i] * temp / deltax[j][i] / deltax[j][i] / lengthOfPhase / lengthOfPhase;
-                b[i] = 1 + 2 * diffusivity[j][i] * temp / deltax[j][i] / deltax[j][i] / lengthOfPhase / lengthOfPhase;
+                a[i] = -2 * diffusivity[j][i - 1] * temp / deltax[j][i] / deltax[j][i];
+                b[i] = 1 + 2 * diffusivity[j][i - 1] * temp / deltax[j][i] / deltax[j][i];
                 c[i] = 0;
                 d[i] = concentration[j][i];
             }
             else
             {
-                a[i] = -diffusivity[j][i] * temp / (deltax[j][i - 1] * (deltax[j][i - 1] + deltax[j][i]) / 2) / lengthOfPhase / lengthOfPhase;
-                b[i] = 1 + (diffusivity[j][i + 1] + diffusivity[j][i]) * temp * (1 / deltax[j][i - 1] + 1 / deltax[j][i]) / ((deltax[j][i - 1] + deltax[j][i]) / 2) / lengthOfPhase / lengthOfPhase;
-                c[i] = -diffusivity[j][i + 1] * temp / (deltax[j][i] * (deltax[j][i - 1] + deltax[j][i]) / 2) / lengthOfPhase / lengthOfPhase;
+                a[i] = -diffusivity[j][i - 1] * temp / deltax[j][i] / deltax[j][i];
+                b[i] = 1 + (diffusivity[j][i - 1] + diffusivity[j][i + 1]) * temp / deltax[j][i] / deltax[j][i];
+                c[i] = -diffusivity[j][i + 1] * temp / deltax[j][i] / deltax[j][i];
                 d[i] = concentration[j][i];
             }
         }
