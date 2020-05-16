@@ -41,7 +41,6 @@
 *.hex
 
 # Excel and pdf files
-*.csv
 *.xls
 *.xlsx
 *.pdf
