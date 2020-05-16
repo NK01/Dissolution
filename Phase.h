@@ -2,6 +2,7 @@
 #define PHASE_H_MAY_2020
 
 #include <vector>
+#include <string>
 
 class Phase
 {
@@ -55,6 +56,15 @@ public:
 
     // Function to perform diffusion for all the elements inside the phase
 	void Diffusion(double dt);
+
+    // Function to read concentration profile
+    void ReadConcentration(std::string concFilename);
+
+    // Function to read deltaX profile
+    void ReadDeltax(std::string deltaxFilename);
+
+    // Function to read diffusivity data
+    void ReadDiffusivities(std::string diffusivityFilename);
 };
 
 #endif // !PHASE_H_MAY_2020

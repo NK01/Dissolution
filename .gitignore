@@ -46,7 +46,7 @@
 *.xlsx
 *.pdf
 
-#Extra python stuffs
+#Extra python and cpp stuffs
 .venv
 .vscode
 

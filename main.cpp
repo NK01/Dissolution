@@ -18,51 +18,53 @@ int main()
     // FileStream Output for writing to the file
 	std::ofstream out;
 
-    // used to store the name of files for input or output
-	char filename[256];
-	char deltaFilename[256];
-    char diffusivityFilename[256];
-
-    strcpy(filename, "input_profile.txt");
-	strcpy(deltaFilename, "deltax_profile.txt");
-    strcpy(diffusivityFilename, "diffusivity_profile.txt");
-
     // The FCC phase
-    Phase FCC;
+    Phase FCC(6, 172);
 
     // Length of FCC phase
-    FCC.lengthOfPhase = 100e-6;
+    FCC.lengthOfPhase = 96.2;
 
-    // FileStream Input for reading from the file
-	std::ifstream in;
-    in.open(filename);
+    // Reading concentration
+    FCC.ReadConcentration("fcc_conc.csv");
 
-    in >> FCC.numberOfControlVolumes;
-
-    for (int i = 0; i < FCC.numberOfControlVolumes; i++)
-    {
-        in >> FCC.concentration[0][i];
-    }
-
-    in.close();
+    // Reading deltax
+    FCC.ReadDeltax("fcc_deltax.csv");
 
     // The Laves phase
-    Phase Laves;
+    Phase Laves(6, 10);
 
-    // Length of Laves phase
-    Laves.lengthOfPhase = 100e-6;
+    Laves.lengthOfPhase = 100 - FCC.lengthOfPhase;
 
-    double totalTime{ 60 * 60 };
+    // Reading Concentration
+    Laves.ReadConcentration("laves_conc.csv");
+
+    // Reading deltax
+    Laves.ReadDeltax("laves_deltax.csv");
+
+    double totalTime{ 1.2e-2 };
     double t{ 0 };
     double dt{ 1e-2 };
     double v{ 0 };
+    double tempVelocity{ 0 };
 
     while (t < totalTime)
     {
         if (FCC.lengthOfPhase > 0 && Laves.lengthOfPhase > 0)
 		{
-			v = (-Laves.diffusivity[0][0] * Laves.backGradient[0] * Laves.lengthOfPhase);
+            v = (-Laves.diffusivity[0][0] * Laves.backGradient[0] * Laves.lengthOfPhase);
 			v = v - (-FCC.diffusivity[0][0] * FCC.backGradient[0] * FCC.lengthOfPhase);
+            
+            for (int i = 1; i < FCC.numberOfSolutes; i++)
+            {
+                tempVelocity = (-Laves.diffusivity[i][0] * Laves.backGradient[i] * Laves.lengthOfPhase);
+			    tempVelocity = tempVelocity - (-FCC.diffusivity[i][0] * FCC.backGradient[i] * FCC.lengthOfPhase);
+
+                if (abs(tempVelocity) < abs(v))
+                {
+                    v = tempVelocity;
+                }
+                
+            }
 			//v = v / (y2 - y1);
 
 			//x1old = x1;
@@ -116,7 +118,13 @@ int main()
     
     for (int i = 0; i < FCC.numberOfControlVolumes; i++)
     {
-        out << "C[" << i << "]: " << FCC.concentration[0][i] << "\n";
+        out << "C[" << i << "]: \t";
+        for (int j = 0; j < FCC.numberOfSolutes; j++)
+        {
+            out << FCC.concentration[j][i] << "\t\t";
+        }
+        
+        out << "\n";
     }
 
     out.close();
