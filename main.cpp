@@ -1,7 +1,7 @@
 #include "Phase.h"
 #include <iostream>
 #include <fstream>
-#include <string.h>
+#include <string>
 
 /*  This code will calculate dissolution in the two phase 
     system. We will utilize moving boundary algorithm
@@ -37,12 +37,12 @@ int main()
     FCC.ReadDiffusivities("fcc_diffusivities.csv");
 
     // Adding Equilibrium concentrations
-    FCC.backEquilibConc[0] = 17.07;
-    FCC.backEquilibConc[1] = 14.93;
-    FCC.backEquilibConc[2] = 8.71;
-    FCC.backEquilibConc[3] = 5.19;
-    FCC.backEquilibConc[4] = 1.94;
-    FCC.backEquilibConc[5] = 0.57023;
+    FCC.frontEquilibConc[0] = 17.07;
+    FCC.frontEquilibConc[1] = 14.93;
+    FCC.frontEquilibConc[2] = 8.71;
+    FCC.frontEquilibConc[3] = 5.19;
+    FCC.frontEquilibConc[4] = 1.94;
+    FCC.frontEquilibConc[5] = 0.57023;
 
     // The Laves phase
     Phase Laves(6, 10);
@@ -56,14 +56,14 @@ int main()
     Laves.ReadDeltax("laves_deltax.csv");
 
     // Adding Equilibrium concentrations
-    Laves.backEquilibConc[0] = 15.41;
-    Laves.backEquilibConc[1] = 18.879;
-    Laves.backEquilibConc[2] = 37.05;
-    Laves.backEquilibConc[3] = 4.93;
-    Laves.backEquilibConc[4] = 0.35;
-    Laves.backEquilibConc[5] = 0.07;
+    Laves.frontEquilibConc[0] = 15.41;
+    Laves.frontEquilibConc[1] = 18.879;
+    Laves.frontEquilibConc[2] = 37.05;
+    Laves.frontEquilibConc[3] = 4.93;
+    Laves.frontEquilibConc[4] = 0.35;
+    Laves.frontEquilibConc[5] = 0.07;
 
-    double totalTime{ 60 };
+    double totalTime{ 60 * 60 };
     double t{ 0 };
     double dt{ 1e-2 };
     double v{ 0 };
@@ -73,15 +73,15 @@ int main()
     {
         if (FCC.lengthOfPhase > 0 && Laves.lengthOfPhase > 0)
 		{
-            v = (-Laves.diffusivity[0][0] * Laves.backGradient[0] * Laves.lengthOfPhase);
-			v = v - (-FCC.diffusivity[0][0] * FCC.backGradient[0] * FCC.lengthOfPhase);
-            v = v / (Laves.backEquilibConc[0] - FCC.backEquilibConc[0]);
+            v = (-Laves.diffusivity[0][Laves.numberOfControlVolumes - 1] * Laves.frontGradient[0] * Laves.lengthOfPhase);
+			v = v - (-FCC.diffusivity[0][FCC.numberOfControlVolumes - 1] * FCC.frontGradient[0] * FCC.lengthOfPhase);
+            v = v / (Laves.frontEquilibConc[0] - FCC.frontEquilibConc[0]);
             
             for (int i = 1; i < FCC.numberOfSolutes; i++)
             {
-                tempVelocity = (-Laves.diffusivity[i][0] * Laves.backGradient[i] * Laves.lengthOfPhase);
-			    tempVelocity = tempVelocity - (-FCC.diffusivity[i][0] * FCC.backGradient[i] * FCC.lengthOfPhase);
-                tempVelocity = tempVelocity / (Laves.backEquilibConc[i] - FCC.backEquilibConc[i]);
+                tempVelocity = (-Laves.diffusivity[i][Laves.numberOfControlVolumes - 1] * Laves.frontGradient[i] * Laves.lengthOfPhase);
+			    tempVelocity = tempVelocity - (-FCC.diffusivity[i][FCC.numberOfControlVolumes - 1] * FCC.frontGradient[i] * FCC.lengthOfPhase);
+                tempVelocity = tempVelocity / (Laves.frontEquilibConc[i] - FCC.frontEquilibConc[i]);
 
                 if (abs(tempVelocity) < abs(v))
                 {
@@ -90,18 +90,22 @@ int main()
                 
             }
 
-			FCC.lengthOfPhase = FCC.lengthOfPhase + (v * dt - 0);
+            FCC.SetLength(v * dt - 0);
 
-			Laves.lengthOfPhase = Laves.lengthOfPhase + (0 - v * dt);
-
-			//bcc.set_length(x1);
-			//hcp.set_length(x1);
-			//fcc.set_length(x2);
+			Laves.SetLength(0 - v*dt);
 
 			FCC.Diffusion(dt);
             Laves.Diffusion(dt);
 
-			//hcp.add_precip(x1old);
+            for (int i = 0; i < FCC.numberOfSolutes; i++)
+            {
+                FCC.concentration[i][FCC.numberOfControlVolumes - 1] = FCC.frontEquilibConc[i];
+            }
+
+            for (int i = 0; i < Laves.numberOfSolutes; i++)
+            {
+                Laves.concentration[i][Laves.numberOfControlVolumes - 1] = Laves.frontEquilibConc[i];
+            }
 		}
 		else
 		{
@@ -110,10 +114,6 @@ int main()
 				FCC.lengthOfPhase = 0;
 				Laves.lengthOfPhase = L - FCC.lengthOfPhase;
 
-				//bcc.set_length(x1);
-				//hcp.set_length(x1);
-				//fcc.set_length(x2);
-
 				// Calculate Internal Diffusion
 				Laves.Diffusion(dt);
 			}
@@ -121,10 +121,6 @@ int main()
 			{
 				Laves.lengthOfPhase = 0;
 				FCC.lengthOfPhase = L - Laves.lengthOfPhase;
-
-				//bcc.set_length(x1);
-				//hcp.set_length(x1);
-				//fcc.set_length(x2);
 
 				// Calculate Internal Diffusion
 				FCC.Diffusion(dt);
@@ -135,7 +131,8 @@ int main()
         t = t + dt;
     }
 
-    out.open("Final_Conc.txt");
+    // Writing final concentration profile of FCC
+    out.open("FCC_Conc.txt");
     
     for (int i = 0; i < FCC.numberOfControlVolumes; i++)
     {
@@ -143,6 +140,22 @@ int main()
         for (int j = 0; j < FCC.numberOfSolutes; j++)
         {
             out << FCC.concentration[j][i] << "\t\t";
+        }
+        
+        out << "\n";
+    }
+
+    out.close();
+
+    // Writing final concentration profile of Laves
+    out.open("Laves_Conc.txt");
+    
+    for (int i = 0; i < Laves.numberOfControlVolumes; i++)
+    {
+        out << "C[" << i << "]: \t";
+        for (int j = 0; j < Laves.numberOfSolutes; j++)
+        {
+            out << Laves.concentration[j][i] << "\t\t";
         }
         
         out << "\n";

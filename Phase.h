@@ -6,6 +6,8 @@
 
 class Phase
 {
+    // variable to keep track of length adjustment
+    double xcumulative;
     
 public:
 
@@ -65,6 +67,9 @@ public:
 
     // Function to read diffusivity data
     void ReadDiffusivities(std::string diffusivityFilename);
+
+    // Adjusting the mesh according to new length
+    void SetLength(double dx);
 };
 
 #endif // !PHASE_H_MAY_2020

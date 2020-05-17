@@ -7,6 +7,7 @@ Phase::Phase()
     numberOfSolutes = 1;
 	numberOfControlVolumes = 1000;
     lengthOfPhase = 100; // in microns
+    xcumulative = 0;
 
     backGradient = std::vector <double>(numberOfSolutes);
     frontGradient = std::vector <double>(numberOfSolutes);
@@ -25,6 +26,7 @@ Phase::Phase(int nElements)
     numberOfSolutes = nElements;
 	numberOfControlVolumes = 100;
     lengthOfPhase = 100; // in microns
+    xcumulative = 0;
 
     backGradient = std::vector <double>(numberOfSolutes);
     frontGradient = std::vector <double>(numberOfSolutes);
@@ -43,6 +45,7 @@ Phase::Phase(int nElements, int nCont)
     numberOfSolutes = nElements;
 	numberOfControlVolumes = nCont;
     lengthOfPhase = 100; // in microns
+    xcumulative = 0;
 
     backGradient = std::vector <double>(numberOfSolutes);
     frontGradient = std::vector <double>(numberOfSolutes);
@@ -257,4 +260,44 @@ void Phase::Diffusion(double dt)
         frontGradient[j] = (-3 * concentration[j][0] + 4 * concentration[j][1] - concentration[j][2]) / 2 / deltax[j][0] / lengthOfPhase;
 
     }
+}
+
+// Adjusting the mesh according to new length
+void Phase::SetLength(double dx)
+{
+    xcumulative += dx;
+    lengthOfPhase += xcumulative;
+
+    if (xcumulative > 0)
+    {
+        while (abs(xcumulative) > deltax[0][0] / 2)
+        {
+            for (int i = 0; i < numberOfSolutes; i++)
+            {
+                concentration[i].push_back(backEquilibConc[i]);
+                deltax[i].push_back(deltax[0][0] / 2);
+                diffusivity[i].push_back(diffusivity[i][numberOfControlVolumes - 1]);
+            }
+            
+            xcumulative -= deltax[0][0] / 2;
+            numberOfControlVolumes += 1;
+        }
+    }
+
+    if (xcumulative < 0)
+    {
+        while (abs(xcumulative) > deltax[0][numberOfControlVolumes - 1])
+        {
+            for (int i = 0; i < numberOfSolutes; i++)
+            {
+                concentration[i].pop_back();
+                deltax[i].pop_back();
+                diffusivity[i].pop_back();
+            }
+            
+            xcumulative -= deltax[0][0] / 2;
+            numberOfControlVolumes -= 1;
+        }
+    }
+    
 }
