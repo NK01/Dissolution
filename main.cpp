@@ -18,6 +18,9 @@ int main()
     // FileStream Output for writing to the file
 	std::ofstream out;
 
+    // Total Length
+    double L{100};
+
     // The FCC phase
     Phase FCC(6, 172);
 
@@ -30,10 +33,21 @@ int main()
     // Reading deltax
     FCC.ReadDeltax("fcc_deltax.csv");
 
+    // Reading diffusivities
+    FCC.ReadDiffusivities("fcc_diffusivities.csv");
+
+    // Adding Equilibrium concentrations
+    FCC.backEquilibConc[0] = 17.07;
+    FCC.backEquilibConc[1] = 14.93;
+    FCC.backEquilibConc[2] = 8.71;
+    FCC.backEquilibConc[3] = 5.19;
+    FCC.backEquilibConc[4] = 1.94;
+    FCC.backEquilibConc[5] = 0.57023;
+
     // The Laves phase
     Phase Laves(6, 10);
 
-    Laves.lengthOfPhase = 100 - FCC.lengthOfPhase;
+    Laves.lengthOfPhase = L - FCC.lengthOfPhase;
 
     // Reading Concentration
     Laves.ReadConcentration("laves_conc.csv");
@@ -41,7 +55,15 @@ int main()
     // Reading deltax
     Laves.ReadDeltax("laves_deltax.csv");
 
-    double totalTime{ 1.2e-2 };
+    // Adding Equilibrium concentrations
+    Laves.backEquilibConc[0] = 15.41;
+    Laves.backEquilibConc[1] = 18.879;
+    Laves.backEquilibConc[2] = 37.05;
+    Laves.backEquilibConc[3] = 4.93;
+    Laves.backEquilibConc[4] = 0.35;
+    Laves.backEquilibConc[5] = 0.07;
+
+    double totalTime{ 60 };
     double t{ 0 };
     double dt{ 1e-2 };
     double v{ 0 };
@@ -53,11 +75,13 @@ int main()
 		{
             v = (-Laves.diffusivity[0][0] * Laves.backGradient[0] * Laves.lengthOfPhase);
 			v = v - (-FCC.diffusivity[0][0] * FCC.backGradient[0] * FCC.lengthOfPhase);
+            v = v / (Laves.backEquilibConc[0] - FCC.backEquilibConc[0]);
             
             for (int i = 1; i < FCC.numberOfSolutes; i++)
             {
                 tempVelocity = (-Laves.diffusivity[i][0] * Laves.backGradient[i] * Laves.lengthOfPhase);
 			    tempVelocity = tempVelocity - (-FCC.diffusivity[i][0] * FCC.backGradient[i] * FCC.lengthOfPhase);
+                tempVelocity = tempVelocity / (Laves.backEquilibConc[0] - FCC.backEquilibConc[0]);
 
                 if (abs(tempVelocity) < abs(v))
                 {
@@ -65,13 +89,10 @@ int main()
                 }
                 
             }
-			//v = v / (y2 - y1);
 
-			//x1old = x1;
-			//x1 = x1 + (v * dt - 0);
+			FCC.lengthOfPhase = FCC.lengthOfPhase + (v * dt - 0);
 
-			//x2old = x2;
-			//x2 = x2 + (0 - v * dt);
+			Laves.lengthOfPhase = Laves.lengthOfPhase + (0 - v * dt);
 
 			//bcc.set_length(x1);
 			//hcp.set_length(x1);
@@ -87,7 +108,7 @@ int main()
 			if (FCC.lengthOfPhase <= 0)
 			{
 				FCC.lengthOfPhase = 0;
-				//Laves.lengthOfPhase = L - x1;
+				Laves.lengthOfPhase = L - FCC.lengthOfPhase;
 
 				//bcc.set_length(x1);
 				//hcp.set_length(x1);
@@ -99,7 +120,7 @@ int main()
 			else
 			{
 				Laves.lengthOfPhase = 0;
-				//x1 = L - x2;
+				FCC.lengthOfPhase = L - Laves.lengthOfPhase;
 
 				//bcc.set_length(x1);
 				//hcp.set_length(x1);
