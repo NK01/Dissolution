@@ -270,7 +270,7 @@ void Phase::SetLength(double dx)
 
     if (xcumulative > 0)
     {
-        while (abs(xcumulative) > deltax[0][0] / 2)
+        while (xcumulative > deltax[0][0] / 2)
         {
             for (int i = 0; i < numberOfSolutes; i++)
             {
@@ -288,15 +288,29 @@ void Phase::SetLength(double dx)
     {
         while (abs(xcumulative) > deltax[0][numberOfControlVolumes - 1])
         {
-            for (int i = 0; i < numberOfSolutes; i++)
+            if (numberOfControlVolumes > 3)
             {
-                concentration[i].pop_back();
-                deltax[i].pop_back();
-                diffusivity[i].pop_back();
+                for (int i = 0; i < numberOfSolutes; i++)
+                {
+                    concentration[i].pop_back();
+                    deltax[i].pop_back();
+                    diffusivity[i].pop_back();
+                }
+                numberOfControlVolumes -= 1;
             }
-            
-            xcumulative -= deltax[0][0] / 2;
-            numberOfControlVolumes -= 1;
+            else
+            {   
+                if (lengthOfPhase > 0)
+                {
+                    for (int i = 0; i < numberOfSolutes; i++)
+                    {
+                        deltax[i][0] = lengthOfPhase / 3;
+                        deltax[i][1] = lengthOfPhase / 3;
+                        deltax[i][2] = lengthOfPhase / 3;
+                    }
+                }
+            }
+            xcumulative += deltax[0][0] / 2;
         }
     }
     

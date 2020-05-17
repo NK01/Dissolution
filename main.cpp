@@ -63,7 +63,7 @@ int main()
     Laves.frontEquilibConc[4] = 0.35;
     Laves.frontEquilibConc[5] = 0.07;
 
-    double totalTime{ 60 * 60 };
+    double totalTime{ 60 * 60 * 12};
     double t{ 0 };
     double dt{ 1e-2 };
     double v{ 0 };
