@@ -81,7 +81,7 @@ int main()
             {
                 tempVelocity = (-Laves.diffusivity[i][0] * Laves.backGradient[i] * Laves.lengthOfPhase);
 			    tempVelocity = tempVelocity - (-FCC.diffusivity[i][0] * FCC.backGradient[i] * FCC.lengthOfPhase);
-                tempVelocity = tempVelocity / (Laves.backEquilibConc[0] - FCC.backEquilibConc[0]);
+                tempVelocity = tempVelocity / (Laves.backEquilibConc[i] - FCC.backEquilibConc[i]);
 
                 if (abs(tempVelocity) < abs(v))
                 {
