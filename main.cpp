@@ -19,13 +19,13 @@ int main()
 	std::ofstream out;
 
     // Total Length
-    double L{100};
+    double L{100e-6};
 
     // The FCC phase
     Phase FCC(6, 172);
 
     // Length of FCC phase
-    FCC.lengthOfPhase = 96.2;
+    FCC.lengthOfPhase = 96.2e-6;
 
     // Reading concentration
     FCC.ReadConcentration("fcc_conc.csv");
@@ -63,7 +63,7 @@ int main()
     Laves.frontEquilibConc[4] = 0.35;
     Laves.frontEquilibConc[5] = 0.07;
 
-    double totalTime{ 60 * 60 * 12};
+    double totalTime{ 60 * 60};
     double t{ 0 };
     double dt{ 1e-2 };
     double v{ 0 };

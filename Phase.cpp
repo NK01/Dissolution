@@ -202,7 +202,7 @@ void Phase::ReadDiffusivities(std::string diffusivityFilename)
 // Function to perform diffusion
 void Phase::Diffusion(double dt)
 {
-    double temp = dt / lengthOfPhase / lengthOfPhase;
+    double temp = dt;
 
 	std::vector<double> a = std::vector <double>(numberOfControlVolumes);
 	std::vector<double> b = std::vector <double>(numberOfControlVolumes);
