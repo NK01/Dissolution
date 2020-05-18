@@ -163,5 +163,11 @@ int main()
 
     out.close();
 
+    out.open("Interface_length.txt");
+
+    out << "Final length of FCC: " << FCC.lengthOfPhase;
+
+    out.close();
+
     return 0;
 }
