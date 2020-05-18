@@ -63,9 +63,9 @@ int main()
     Laves.frontEquilibConc[4] = 0.35;
     Laves.frontEquilibConc[5] = 0.07;
 
-    double totalTime{ 60 * 60};
+    double totalTime{ 60 * 60 * 6 };
     double t{ 0 };
-    double dt{ 1e-2 };
+    double dt{ 1e0 };
     double v{ 0 };
     double tempVelocity{ 0 };
 
@@ -73,10 +73,11 @@ int main()
     {
         if (FCC.lengthOfPhase > 0 && Laves.lengthOfPhase > 0)
 		{
-            v = (-Laves.diffusivity[0][Laves.numberOfControlVolumes - 1] * Laves.frontGradient[0] * Laves.lengthOfPhase);
-			v = v - (-FCC.diffusivity[0][FCC.numberOfControlVolumes - 1] * FCC.frontGradient[0] * FCC.lengthOfPhase);
-            v = v / (Laves.frontEquilibConc[0] - FCC.frontEquilibConc[0]);
+            v = (-Laves.diffusivity[2][Laves.numberOfControlVolumes - 1] * -Laves.frontGradient[2] * Laves.lengthOfPhase);
+			v = v - (-FCC.diffusivity[2][FCC.numberOfControlVolumes - 1] * FCC.frontGradient[2] * FCC.lengthOfPhase);
+            v = v / (Laves.frontEquilibConc[2] - FCC.frontEquilibConc[2]);
             
+            /*
             for (int i = 1; i < FCC.numberOfSolutes; i++)
             {
                 tempVelocity = (-Laves.diffusivity[i][Laves.numberOfControlVolumes - 1] * Laves.frontGradient[i] * Laves.lengthOfPhase);
@@ -89,23 +90,14 @@ int main()
                 }
                 
             }
-
+            */
+            
             FCC.SetLength(v * dt - 0);
 
 			Laves.SetLength(0 - v*dt);
 
-			FCC.Diffusion(dt);
-            Laves.Diffusion(dt);
-
-            for (int i = 0; i < FCC.numberOfSolutes; i++)
-            {
-                FCC.concentration[i][FCC.numberOfControlVolumes - 1] = FCC.frontEquilibConc[i];
-            }
-
-            for (int i = 0; i < Laves.numberOfSolutes; i++)
-            {
-                Laves.concentration[i][Laves.numberOfControlVolumes - 1] = Laves.frontEquilibConc[i];
-            }
+			FCC.Diffusion(dt, 0);
+            Laves.Diffusion(dt, 0);
 		}
 		else
 		{
@@ -115,7 +107,7 @@ int main()
 				Laves.lengthOfPhase = L - FCC.lengthOfPhase;
 
 				// Calculate Internal Diffusion
-				Laves.Diffusion(dt);
+				Laves.Diffusion(dt, -1);
 			}
 			else
 			{
@@ -123,7 +115,7 @@ int main()
 				FCC.lengthOfPhase = L - Laves.lengthOfPhase;
 
 				// Calculate Internal Diffusion
-				FCC.Diffusion(dt);
+				FCC.Diffusion(dt, -1);
 			}
 
 		}

@@ -1,5 +1,6 @@
 #include "Phase.h"
 #include <fstream>
+#include <iostream>
 
 // Default Constructor
 Phase::Phase()
@@ -63,6 +64,12 @@ void Phase::ReadConcentration(std::string concFilename)
 {
     std::ifstream concInput;
     concInput.open(concFilename);
+
+    if (!concInput.is_open())
+    {
+        std::cout << "Error opening file: " << concFilename << std::endl;
+        return;
+    }
 
     // number of rows in the excel file
     int rows{0};
@@ -200,7 +207,7 @@ void Phase::ReadDiffusivities(std::string diffusivityFilename)
 }
 
 // Function to perform diffusion
-void Phase::Diffusion(double dt)
+void Phase::Diffusion(double dt, int index)
 {
     double temp = dt;
 
@@ -256,8 +263,16 @@ void Phase::Diffusion(double dt)
             concentration[j][i] = dnew[i] - cnew[i] * concentration[j][i + 1];
         }
 
-        backGradient[j] = (3 * concentration[j][numberOfControlVolumes - 1] - 4 * concentration[j][numberOfControlVolumes - 2] + concentration[j][numberOfControlVolumes - 3]) / 2 / deltax[j][numberOfControlVolumes - 1] / lengthOfPhase;
-        frontGradient[j] = (-3 * concentration[j][0] + 4 * concentration[j][1] - concentration[j][2]) / 2 / deltax[j][0] / lengthOfPhase;
+        if (index != -1)
+        {
+            for (int i = 0; i < numberOfSolutes; i++)
+            {
+                concentration[i][numberOfControlVolumes - 1] = frontEquilibConc[i];
+            }
+        }
+
+        frontGradient[j] = (3 * concentration[j][numberOfControlVolumes - 1] - 4 * concentration[j][numberOfControlVolumes - 2] + concentration[j][numberOfControlVolumes - 3]) / 2 / deltax[j][numberOfControlVolumes - 1] / lengthOfPhase;
+        backGradient[j] = (-3 * concentration[j][0] + 4 * concentration[j][1] - concentration[j][2]) / 2 / deltax[j][0] / lengthOfPhase;
 
     }
 }
@@ -266,16 +281,16 @@ void Phase::Diffusion(double dt)
 void Phase::SetLength(double dx)
 {
     xcumulative += dx;
-    lengthOfPhase += xcumulative;
+    lengthOfPhase += dx;
 
     if (xcumulative > 0)
     {
-        while (xcumulative > deltax[0][0] / 2)
+        while (xcumulative > deltax[0][numberOfControlVolumes - 1])
         {
             for (int i = 0; i < numberOfSolutes; i++)
             {
                 concentration[i].push_back(backEquilibConc[i]);
-                deltax[i].push_back(deltax[0][0] / 2);
+                deltax[i].push_back(deltax[0][numberOfControlVolumes - 1]);
                 diffusivity[i].push_back(diffusivity[i][numberOfControlVolumes - 1]);
             }
             

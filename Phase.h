@@ -57,7 +57,7 @@ public:
 	//~Phase();
 
     // Function to perform diffusion for all the elements inside the phase
-	void Diffusion(double dt);
+	void Diffusion(double dt, int index);
 
     // Function to read concentration profile
     void ReadConcentration(std::string concFilename);
