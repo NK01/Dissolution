@@ -44,6 +44,8 @@
 *.xls
 *.xlsx
 *.pdf
+*.csv
+*.txt
 
 #Extra python and cpp stuffs
 .venv
