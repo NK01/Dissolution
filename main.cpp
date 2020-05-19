@@ -65,6 +65,9 @@ int main()
     // Reading deltax
     Laves.ReadDeltax("laves_deltax.csv");
 
+    // Reading diffusivities
+    Laves.ReadDiffusivities("laves_diffusivities.csv");
+
     // Adding Equilibrium concentrations
     if (Laves.numberOfSolutes != 6)
     {
@@ -82,9 +85,9 @@ int main()
     Laves.frontEquilibConc[4] = 0.35;
     Laves.frontEquilibConc[5] = 0.07;
 
-    double totalTime{ 60 * 60 * 6 };
+    double totalTime{ 60 * 60 * 24 };
     double t{ 0 };
-    double dt{ 1e-1 };
+    double dt{ 1e0 };
     double v{ 0 };
     double tempVelocity{ 0 };
 
@@ -94,12 +97,14 @@ int main()
     double b{ 0.0 };
     // =========================================================
 
+    output.open("Interface_length.txt");
+
     while (t < totalTime)
     {
         if (FCC.lengthOfPhase > 0 && Laves.lengthOfPhase > 0)
 		{
-            v = (-1 * -Laves.frontGradient[2] * Laves.lengthOfPhase);
-			v = v - (-1 * FCC.frontGradient[2] * FCC.lengthOfPhase);
+            v = -(-Laves.frontGradient[2] * Laves.lengthOfPhase);
+			v = v - (-FCC.frontGradient[2] * FCC.lengthOfPhase);
             v = v / (Laves.frontEquilibConc[2] - FCC.frontEquilibConc[2]);
             
             /*
@@ -123,14 +128,6 @@ int main()
 
 			FCC.Diffusion(dt, 0);
             Laves.Diffusion(dt, 0);
-
-            // temperoray section =====================================
-            // for concentration dependent diffusivity in Nb
-            for (int i = 0; i < FCC.numberOfControlVolumes; i++)
-            {
-                FCC.diffusivity[2][i] = a * FCC.concentration[2][i] + b;
-            }
-            // =========================================================
 		}
 		else
 		{
@@ -154,7 +151,7 @@ int main()
 		}
 
         // progressbar display
-        if (static_cast<int>(t) % 60 == 0)
+        if (static_cast<int>(t/dt) % static_cast<int>(60 * 5 / dt) == 0)
         {
             double progress = t / totalTime;
             int barWidth = 70;
@@ -168,10 +165,15 @@ int main()
                 else std::cout << " ";
             }
             std::cout << "] " << static_cast<int>(progress * 100.0) << " %\r" << std::flush;
+
+            output << FCC.lengthOfPhase << std::endl;
         }
 
         t = t + dt;
     }
+
+    output << FCC.lengthOfPhase << std::endl;
+    output.close();
 
     // Writing final concentration profile of FCC
     output.open("FCC_Conc.txt");
@@ -205,16 +207,7 @@ int main()
 
     output.close();
 
-    output.open("Interface_length.txt");
-
-    output << "Final length of FCC: " << FCC.lengthOfPhase;
-
-    output.close();
-
     std::cout << "\nSimulation completed\n";
-    std::cout << "Press Enter to exit code: ";
-    std::cin.clear(); // reset any error flags
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     return 0;
 }

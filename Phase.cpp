@@ -333,7 +333,7 @@ void Phase::Diffusion(double dt, int index)
         }
 
         frontGradient[j] = (3 * diffusivity[j][numberOfControlVolumes - 1] * concentration[j][numberOfControlVolumes - 1] - 4 * diffusivity[j][numberOfControlVolumes - 2] * concentration[j][numberOfControlVolumes - 2] + diffusivity[j][numberOfControlVolumes - 3] * concentration[j][numberOfControlVolumes - 3]) / 2 / deltax[j][numberOfControlVolumes - 1] / lengthOfPhase;
-        backGradient[j] = (-3 * diffusivity[j][0] * concentration[j][0] + 4 * diffusivity[j][1] * concentration[j][1] - diffusivity[j][2] * concentration[j][2]) / 2 / deltax[j][0] / lengthOfPhase;
+        backGradient[j] = (3 * diffusivity[j][0] * concentration[j][0] - 4 * diffusivity[j][1] * concentration[j][1] + diffusivity[j][2] * concentration[j][2]) / 2 / deltax[j][0] / lengthOfPhase;
 
     }
 }
