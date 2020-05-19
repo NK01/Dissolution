@@ -6,7 +6,7 @@
 Phase::Phase()
 {
     numberOfSolutes = 1;
-	numberOfControlVolumes = 1000;
+	numberOfControlVolumes = 3;
     lengthOfPhase = 100; // in microns
     xcumulative = 0;
 
@@ -18,14 +18,22 @@ Phase::Phase()
     diffusivity = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
     concentration = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
     deltax = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
-    
+
+    for (int i = 0; i < numberOfSolutes; i++)
+    {
+        for (int j = 0; j < numberOfControlVolumes; j++)
+        {
+            deltax[i][j] = 1.0;
+        }
+        
+    }
 }
 
 // Constructor which takes number of control volumes as argument
 Phase::Phase(int nElements)
 {
     numberOfSolutes = nElements;
-	numberOfControlVolumes = 100;
+	numberOfControlVolumes = 3;
     lengthOfPhase = 100; // in microns
     xcumulative = 0;
 
@@ -38,6 +46,14 @@ Phase::Phase(int nElements)
     concentration = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
     deltax = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
     
+    for (int i = 0; i < numberOfSolutes; i++)
+    {
+        for (int j = 0; j < numberOfControlVolumes; j++)
+        {
+            deltax[i][j] = 1.0;
+        }
+        
+    }
 }
 
 // Constructor which takes number of control volumes and number of elements as argument
@@ -57,6 +73,13 @@ Phase::Phase(int nElements, int nCont)
     concentration = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
     deltax = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
     
+    for (int i = 0; i < numberOfSolutes; i++)
+    {
+        for (int j = 0; j < numberOfControlVolumes; j++)
+        {
+            deltax[i][j] = 1.0;
+        }
+    }
 }
 
 // Function to read concentration profile
@@ -65,70 +88,90 @@ void Phase::ReadConcentration(std::string concFilename)
     std::ifstream concInput;
     concInput.open(concFilename);
 
-    if (!concInput.is_open())
+    if (concInput.is_open())
     {
-        std::cout << "Error opening file: " << concFilename << std::endl;
-        return;
-    }
+        // number of rows in the excel file
+        int rows{0};
 
-    // number of rows in the excel file
-    int rows{0};
+        // number of column in the excel file
+        int columns{0};
 
-    // number of column in the excel file
-    int columns{0};
-
-    // This loop will calculate the number of rows and columns in the excel file
-	while(concInput)
-	{
-        std::string buff;
-        std::getline(concInput, buff);
-        int foundPos{0};
-        while (foundPos != std::string::npos)
+        // This loop will calculate the number of rows and columns in the excel file
+        while(concInput)
         {
-            foundPos = buff.find_first_of(",", foundPos + 1);
-            if (rows == 0)
+            std::string buff;
+            std::getline(concInput, buff);
+            int foundPos{0};
+            while (foundPos != std::string::npos)
             {
-                columns++;
+                foundPos = buff.find_first_of(",", foundPos + 1);
+                if (rows == 0)
+                {
+                    columns++;
+                }
+                
             }
-            
+
+            rows++;
         }
+        rows = rows - 2;
 
-        rows++;
-	}
-    rows = rows - 2;
+        if (rows >=3 && columns >= 1)
+        {
+            numberOfSolutes = columns;
+            numberOfControlVolumes = rows;
+            concentration = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
+            deltax = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
+            diffusivity = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
+            
+            for (int i = 0; i < numberOfSolutes; i++)
+            {
+                for (int j = 0; j < numberOfControlVolumes; j++)
+                {
+                    deltax[i][j] = 1.0;
+                }
+            }
+        }
+    }
+    else
+    {
+        std::cout << "The file " << concFilename << " was not found!\n";
+    }
+    
+
     concInput.close();
-
-    numberOfSolutes = columns;
-    numberOfControlVolumes = rows;
-    concentration = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
 
     concInput.open(concFilename);
 
-    int row{0};
-    int column{0};
-    std::string value{"undefined"};
-	while(concInput)
-	{
-        std::string buff;
-        std::getline(concInput, buff);
-
-        column = 0;
-        int initialPos{0};
-        int finalPos{0};
-        if (row != 0 && row <= rows)
+    if (concInput.is_open())
+    {
+        int row{0};
+        int column{0};
+        std::string value{"undefined"};
+        while(concInput)
         {
-            while (finalPos != std::string::npos)
-            {
-                finalPos = buff.find_first_of(",", finalPos + 1);
-                value = buff.substr(initialPos, (finalPos - initialPos));
-                concentration[column][row-1] = std::stod(value);
-                initialPos = finalPos + 1;
-                column++;
-            }
-        }
+            std::string buff;
+            std::getline(concInput, buff);
 
-        row++;
-	}
+            column = 0;
+            int initialPos{0};
+            int finalPos{0};
+            if (row != 0 && row <= numberOfControlVolumes)
+            {
+                while (finalPos != std::string::npos && column < numberOfSolutes)
+                {
+                    finalPos = buff.find_first_of(",", finalPos + 1);
+                    value = buff.substr(initialPos, (finalPos - initialPos));
+                    concentration[column][row-1] = std::stod(value);
+                    initialPos = finalPos + 1;
+                    column++;
+                }
+            }
+
+            row++;
+        }
+    }
+    
     concInput.close();
 }
 
@@ -137,35 +180,41 @@ void Phase::ReadDeltax(std::string deltaxFilename)
 {
     std::ifstream deltaxInput;
 
-    deltax = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
-
     deltaxInput.open(deltaxFilename);
 
-    int row{ 0 };
-    int column{ 0 };
-    std::string value{"undefined"};
-	while(deltaxInput)
-	{
-        std::string buff;
-        std::getline(deltaxInput, buff);
-
-        column = 0;
-        int initialPos{0};
-        int finalPos{0};
-        if (row != 0 && row <= numberOfControlVolumes)
+    if (deltaxInput.is_open())
+    {
+        int row{ 0 };
+        int column{ 0 };
+        std::string value{"undefined"};
+        while(deltaxInput)
         {
-            while (finalPos != std::string::npos)
-            {
-                finalPos = buff.find_first_of(",", finalPos + 1);
-                value = buff.substr(initialPos, (finalPos - initialPos));
-                deltax[column][row-1] = std::stod(value);
-                initialPos = finalPos + 1;
-                column++;
-            }
-        }
+            std::string buff;
+            std::getline(deltaxInput, buff);
 
-        row++;
-	}
+            column = 0;
+            int initialPos{0};
+            int finalPos{0};
+            if (row != 0 && row <= numberOfControlVolumes)
+            {
+                while (finalPos != std::string::npos && column < numberOfSolutes)
+                {
+                    finalPos = buff.find_first_of(",", finalPos + 1);
+                    value = buff.substr(initialPos, (finalPos - initialPos));
+                    deltax[column][row-1] = std::stod(value);
+                    initialPos = finalPos + 1;
+                    column++;
+                }
+            }
+
+            row++;
+        }
+    }
+    else
+    {
+        std::cout << "The file " << deltaxFilename << " was not found!\n";
+    }
+    
     deltaxInput.close();
 }
 
@@ -174,35 +223,41 @@ void Phase::ReadDiffusivities(std::string diffusivityFilename)
 {
     std::ifstream diffusivityInput;
 
-    diffusivity = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
-
     diffusivityInput.open(diffusivityFilename);
 
-    int row{0};
-    int column{0};
-    std::string value{"undefined"};
-	while(diffusivityInput)
-	{
-        std::string buff;
-        std::getline(diffusivityInput, buff);
-
-        column = 0;
-        int initialPos{0};
-        int finalPos{0};
-        if (row != 0 && row <= numberOfControlVolumes)
+    if (diffusivityInput.is_open())
+    {
+        int row{0};
+        int column{0};
+        std::string value{"undefined"};
+        while(diffusivityInput)
         {
-            while (finalPos != std::string::npos)
-            {
-                finalPos = buff.find_first_of(",", finalPos + 1);
-                value = buff.substr(initialPos, (finalPos - initialPos));
-                diffusivity[column][row-1] = std::stod(value);
-                initialPos = finalPos + 1;
-                column++;
-            }
-        }
+            std::string buff;
+            std::getline(diffusivityInput, buff);
 
-        row++;
-	}
+            column = 0;
+            int initialPos{0};
+            int finalPos{0};
+            if (row != 0 && row <= numberOfControlVolumes)
+            {
+                while (finalPos != std::string::npos && column < numberOfSolutes)
+                {
+                    finalPos = buff.find_first_of(",", finalPos + 1);
+                    value = buff.substr(initialPos, (finalPos - initialPos));
+                    diffusivity[column][row-1] = std::stod(value);
+                    initialPos = finalPos + 1;
+                    column++;
+                }
+            }
+
+            row++;
+        }
+    }
+    else
+    {
+        std::cout << "The file " << diffusivityFilename << " was not found!\n";
+    }
+    
     diffusivityInput.close();
 }
 
