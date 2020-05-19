@@ -120,10 +120,16 @@ void Phase::ReadConcentration(std::string concFilename)
         {
             numberOfSolutes = columns;
             numberOfControlVolumes = rows;
+
+            backGradient = std::vector <double>(numberOfSolutes);
+            frontGradient = std::vector <double>(numberOfSolutes);
+            backEquilibConc = std::vector <double>(numberOfSolutes);
+            frontEquilibConc = std::vector <double>(numberOfSolutes);
+
+            diffusivity = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
             concentration = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
             deltax = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
-            diffusivity = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
-            
+
             for (int i = 0; i < numberOfSolutes; i++)
             {
                 for (int j = 0; j < numberOfControlVolumes; j++)

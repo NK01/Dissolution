@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <limits>
 
 /*  This code will calculate dissolution in the two phase 
     system. We will utilize moving boundary algorithm
@@ -16,13 +17,13 @@
 int main()
 {
     // FileStream Output for writing to the file
-	std::ofstream out;
+	std::ofstream output;
 
     // Total Length
     double L{100e-6};
 
     // The FCC phase
-    Phase FCC(6, 172);
+    Phase FCC;
 
     // Length of FCC phase
     FCC.lengthOfPhase = 96.2e-6;
@@ -37,6 +38,15 @@ int main()
     FCC.ReadDiffusivities("fcc_diffusivities.csv");
 
     // Adding Equilibrium concentrations
+    if (FCC.numberOfSolutes != 6)
+    {
+        std::cout << "The number of solute in FCC is not 6!!\n";
+        std::cout << "Press Enter to exit code: ";
+        std::cin.clear(); // reset any error flags
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        return 0;
+    }
+
     FCC.frontEquilibConc[0] = 17.07;
     FCC.frontEquilibConc[1] = 14.93;
     FCC.frontEquilibConc[2] = 8.71;
@@ -45,7 +55,7 @@ int main()
     FCC.frontEquilibConc[5] = 0.57023;
 
     // The Laves phase
-    Phase Laves(6, 10);
+    Phase Laves;
 
     Laves.lengthOfPhase = L - FCC.lengthOfPhase;
 
@@ -56,6 +66,15 @@ int main()
     Laves.ReadDeltax("laves_deltax.csv");
 
     // Adding Equilibrium concentrations
+    if (Laves.numberOfSolutes != 6)
+    {
+        std::cout << "The number of Solutes in Laves is not 6!!\n";
+        std::cout << "Press Enter to exit code: ";
+        std::cin.clear(); // reset any error flags
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        return 0;
+    }
+    
     Laves.frontEquilibConc[0] = 15.41;
     Laves.frontEquilibConc[1] = 18.879;
     Laves.frontEquilibConc[2] = 37.05;
@@ -65,7 +84,7 @@ int main()
 
     double totalTime{ 60 * 60 * 6 };
     double t{ 0 };
-    double dt{ 1e0 };
+    double dt{ 1e-1 };
     double v{ 0 };
     double tempVelocity{ 0 };
 
@@ -120,46 +139,63 @@ int main()
 
 		}
 
+        // progressbar display
+        if (static_cast<int>(t) % 60 == 0)
+        {
+            double progress = t / totalTime;
+            int barWidth = 70;
+            std::cout << "[";
+
+            int pos = barWidth * progress;
+            for (int i = 0; i < barWidth; ++i) 
+            {
+                if (i < pos) std::cout << "=";
+                else if (i == pos) std::cout << ">";
+                else std::cout << " ";
+            }
+            std::cout << "] " << static_cast<int>(progress * 100.0) << " %\r" << std::flush;
+        }
+
         t = t + dt;
     }
 
     // Writing final concentration profile of FCC
-    out.open("FCC_Conc.txt");
+    output.open("FCC_Conc.txt");
     
     for (int i = 0; i < FCC.numberOfControlVolumes; i++)
     {
-        out << "C[" << i << "]: \t";
+        output << "C[" << i << "]: \t";
         for (int j = 0; j < FCC.numberOfSolutes; j++)
         {
-            out << FCC.concentration[j][i] << "\t\t";
+            output << FCC.concentration[j][i] << "\t\t";
         }
         
-        out << "\n";
+        output << "\n";
     }
 
-    out.close();
+    output.close();
 
     // Writing final concentration profile of Laves
-    out.open("Laves_Conc.txt");
+    output.open("Laves_Conc.txt");
     
     for (int i = 0; i < Laves.numberOfControlVolumes; i++)
     {
-        out << "C[" << i << "]: \t";
+        output << "C[" << i << "]: \t";
         for (int j = 0; j < Laves.numberOfSolutes; j++)
         {
-            out << Laves.concentration[j][i] << "\t\t";
+            output << Laves.concentration[j][i] << "\t\t";
         }
         
-        out << "\n";
+        output << "\n";
     }
 
-    out.close();
+    output.close();
 
-    out.open("Interface_length.txt");
+    output.open("Interface_length.txt");
 
-    out << "Final length of FCC: " << FCC.lengthOfPhase;
+    output << "Final length of FCC: " << FCC.lengthOfPhase;
 
-    out.close();
+    output.close();
 
     return 0;
 }
