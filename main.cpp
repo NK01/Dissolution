@@ -197,5 +197,10 @@ int main()
 
     output.close();
 
+    std::cout << "\nSimulation completed\n";
+    std::cout << "Press Enter to exit code: ";
+    std::cin.clear(); // reset any error flags
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
     return 0;
 }
