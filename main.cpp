@@ -88,19 +88,25 @@ int main()
     double v{ 0 };
     double tempVelocity{ 0 };
 
+    // temperoray section =====================================
+    // for concentration dependent diffusivity in Nb
+    double a{ 0.0 };
+    double b{ 0.0 };
+    // =========================================================
+
     while (t < totalTime)
     {
         if (FCC.lengthOfPhase > 0 && Laves.lengthOfPhase > 0)
 		{
-            v = (-Laves.diffusivity[2][Laves.numberOfControlVolumes - 1] * -Laves.frontGradient[2] * Laves.lengthOfPhase);
-			v = v - (-FCC.diffusivity[2][FCC.numberOfControlVolumes - 1] * FCC.frontGradient[2] * FCC.lengthOfPhase);
+            v = (-1 * -Laves.frontGradient[2] * Laves.lengthOfPhase);
+			v = v - (-1 * FCC.frontGradient[2] * FCC.lengthOfPhase);
             v = v / (Laves.frontEquilibConc[2] - FCC.frontEquilibConc[2]);
             
             /*
             for (int i = 1; i < FCC.numberOfSolutes; i++)
             {
-                tempVelocity = (-Laves.diffusivity[i][Laves.numberOfControlVolumes - 1] * Laves.frontGradient[i] * Laves.lengthOfPhase);
-			    tempVelocity = tempVelocity - (-FCC.diffusivity[i][FCC.numberOfControlVolumes - 1] * FCC.frontGradient[i] * FCC.lengthOfPhase);
+                tempVelocity = (-1 * Laves.frontGradient[i] * Laves.lengthOfPhase);
+			    tempVelocity = tempVelocity - (-1 * FCC.frontGradient[i] * FCC.lengthOfPhase);
                 tempVelocity = tempVelocity / (Laves.frontEquilibConc[i] - FCC.frontEquilibConc[i]);
 
                 if (abs(tempVelocity) < abs(v))
@@ -117,6 +123,14 @@ int main()
 
 			FCC.Diffusion(dt, 0);
             Laves.Diffusion(dt, 0);
+
+            // temperoray section =====================================
+            // for concentration dependent diffusivity in Nb
+            for (int i = 0; i < FCC.numberOfControlVolumes; i++)
+            {
+                FCC.diffusivity[2][i] = a * FCC.concentration[2][i] + b;
+            }
+            // =========================================================
 		}
 		else
 		{
