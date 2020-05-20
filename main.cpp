@@ -26,7 +26,7 @@ int main()
     Phase FCC;
 
     // Length of FCC phase
-    FCC.lengthOfPhase = 96.2e-6;
+    FCC.lengthOfPhase = 96.6e-6;
 
     // Reading concentration
     FCC.ReadConcentration("fcc_conc.csv");
@@ -49,7 +49,7 @@ int main()
 
     FCC.frontEquilibConc[0] = 17.07;
     FCC.frontEquilibConc[1] = 14.93;
-    FCC.frontEquilibConc[2] = 8.71;
+    FCC.frontEquilibConc[2] = 5.0;
     FCC.frontEquilibConc[3] = 5.19;
     FCC.frontEquilibConc[4] = 1.94;
     FCC.frontEquilibConc[5] = 0.57023;
@@ -80,14 +80,14 @@ int main()
     
     Laves.frontEquilibConc[0] = 15.41;
     Laves.frontEquilibConc[1] = 18.879;
-    Laves.frontEquilibConc[2] = 37.05;
+    Laves.frontEquilibConc[2] = 37;
     Laves.frontEquilibConc[3] = 4.93;
     Laves.frontEquilibConc[4] = 0.35;
     Laves.frontEquilibConc[5] = 0.07;
 
     double totalTime{ 60 * 60 * 24 };
     double t{ 0 };
-    double dt{ 1e0 };
+    double dt{ 1e-1 };
     double v{ 0 };
     double tempVelocity{ 0 };
 
