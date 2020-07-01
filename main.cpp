@@ -19,14 +19,58 @@ int main()
     // FileStream Output for writing to the file
 	std::ofstream output;
 
+    std::vector<double> processConditions = std::vector <double>(4);
+
+    std::ifstream processConditionInput;
+    processConditionInput.open("ProcessCondition.csv");
+
+    if (processConditionInput.is_open())
+    {
+        int row{0};
+        int column{0};
+        std::string value{"undefined"};
+        while(processConditionInput)
+        {
+            std::string buff;
+            std::getline(processConditionInput, buff);
+
+            column = 0;
+            int initialPos{0};
+            int finalPos{0};
+
+            if (row <= processConditions.size())
+            {
+                while (finalPos != std::string::npos)
+                {
+                    finalPos = buff.find_first_of(",", finalPos + 1);
+                    value = buff.substr(initialPos, (finalPos - initialPos));
+                    if (column == 1)
+                    {
+                        processConditions[row] = std::stod(value);
+                    }
+                    initialPos = finalPos + 1;
+                    column++;
+                }
+            }
+
+            row++;
+        }
+    }
+    else
+    {
+        std::cout << "The file ProcessCondition.csv was not found! Using default values\n";
+    }
+    
+    processConditionInput.close();
+
     // Total Length
-    double L{100e-6};
+    double L{ processConditions[2] };
 
     // The FCC phase
     Phase FCC;
 
     // Length of FCC phase
-    FCC.lengthOfPhase = 96.6e-6;
+    FCC.lengthOfPhase = (100 - processConditions[3]) * L / 100;
 
     // Reading concentration
     FCC.ReadConcentration("fcc_conc.csv");
@@ -37,22 +81,45 @@ int main()
     // Reading diffusivities
     FCC.ReadDiffusivities("fcc_diffusivities.csv");
 
-    // Adding Equilibrium concentrations
-    if (FCC.numberOfSolutes != 6)
-    {
-        std::cout << "The number of solute in FCC is not 6!!\n";
-        std::cout << "Press Enter to exit code: ";
-        std::cin.clear(); // reset any error flags
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return 0;
-    }
+    // Adding Equilibrium concentrations 
+    std::ifstream equilibConcInput;
 
-    FCC.frontEquilibConc[0] = 17.07;
-    FCC.frontEquilibConc[1] = 14.93;
-    FCC.frontEquilibConc[2] = 5.0;
-    FCC.frontEquilibConc[3] = 5.19;
-    FCC.frontEquilibConc[4] = 1.94;
-    FCC.frontEquilibConc[5] = 0.57023;
+    equilibConcInput.open("fcc_EquilibConc.csv");
+
+    if (equilibConcInput.is_open())
+    {
+        int row{0};
+        int column{0};
+        std::string value{"undefined"};
+        while(equilibConcInput)
+        {
+            std::string buff;
+            std::getline(equilibConcInput, buff);
+
+            column = 0;
+            int initialPos{0};
+            int finalPos{0};
+            if (row != 0 && row <= 1)
+            {
+                while (finalPos != std::string::npos && column < FCC.numberOfSolutes)
+                {
+                    finalPos = buff.find_first_of(",", finalPos + 1);
+                    value = buff.substr(initialPos, (finalPos - initialPos));
+                    FCC.frontEquilibConc[column] = std::stod(value);
+                    initialPos = finalPos + 1;
+                    column++;
+                }
+            }
+
+            row++;
+        }
+    }
+    else
+    {
+        std::cout << "The file fcc_EquilibConc.csv was not found!\n";
+    }
+    
+    equilibConcInput.close();
 
     // The Laves phase
     Phase Laves;
@@ -68,50 +135,66 @@ int main()
     // Reading diffusivities
     Laves.ReadDiffusivities("laves_diffusivities.csv");
 
-    // Adding Equilibrium concentrations
-    if (Laves.numberOfSolutes != 6)
+    // Adding Equilibrium concentrations    
+    equilibConcInput.open("laves_EquilibConc.csv");
+
+    if (equilibConcInput.is_open())
     {
-        std::cout << "The number of Solutes in Laves is not 6!!\n";
-        std::cout << "Press Enter to exit code: ";
-        std::cin.clear(); // reset any error flags
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return 0;
+        int row{0};
+        int column{0};
+        std::string value{"undefined"};
+        while(equilibConcInput)
+        {
+            std::string buff;
+            std::getline(equilibConcInput, buff);
+
+            column = 0;
+            int initialPos{0};
+            int finalPos{0};
+            if (row != 0 && row <= 1)
+            {
+                while (finalPos != std::string::npos && column < Laves.numberOfSolutes)
+                {
+                    finalPos = buff.find_first_of(",", finalPos + 1);
+                    value = buff.substr(initialPos, (finalPos - initialPos));
+                    Laves.frontEquilibConc[column] = std::stod(value);
+                    initialPos = finalPos + 1;
+                    column++;
+                }
+            }
+
+            row++;
+        }
+    }
+    else
+    {
+        std::cout << "The file laves_EquilibConc.csv was not found!\n";
     }
     
-    Laves.frontEquilibConc[0] = 15.41;
-    Laves.frontEquilibConc[1] = 18.879;
-    Laves.frontEquilibConc[2] = 37;
-    Laves.frontEquilibConc[3] = 4.93;
-    Laves.frontEquilibConc[4] = 0.35;
-    Laves.frontEquilibConc[5] = 0.07;
+    equilibConcInput.close();
 
-    double totalTime{ 60 * 60 * 24 };
+    double totalTime{ 0 };
+    double dt{ 1 };
     double t{ 0 };
-    double dt{ 1e-1 };
     double v{ 0 };
     double tempVelocity{ 0 };
 
-    // temperoray section =====================================
-    // for concentration dependent diffusivity in Nb
-    double a{ 0.0 };
-    double b{ 0.0 };
-    // =========================================================
-
     output.open("Interface_length.txt");
 
+    totalTime = processConditions[0];
+    dt = processConditions[1];
     while (t < totalTime)
     {
         if (FCC.lengthOfPhase > 0 && Laves.lengthOfPhase > 0)
 		{
-            v = -(-Laves.frontGradient[2] * Laves.lengthOfPhase);
-			v = v - (-FCC.frontGradient[2] * FCC.lengthOfPhase);
-            v = v / (Laves.frontEquilibConc[2] - FCC.frontEquilibConc[2]);
-            
-            /*
+            v = -(-Laves.frontGradient[0] * Laves.lengthOfPhase);
+			v = v - (-FCC.frontGradient[0] * FCC.lengthOfPhase);
+            v = v / (Laves.frontEquilibConc[0] - FCC.frontEquilibConc[0]);
+
             for (int i = 1; i < FCC.numberOfSolutes; i++)
             {
-                tempVelocity = (-1 * Laves.frontGradient[i] * Laves.lengthOfPhase);
-			    tempVelocity = tempVelocity - (-1 * FCC.frontGradient[i] * FCC.lengthOfPhase);
+                tempVelocity = -(-Laves.frontGradient[i] * Laves.lengthOfPhase);
+			    tempVelocity = tempVelocity - (-FCC.frontGradient[i] * FCC.lengthOfPhase);
                 tempVelocity = tempVelocity / (Laves.frontEquilibConc[i] - FCC.frontEquilibConc[i]);
 
                 if (abs(tempVelocity) < abs(v))
@@ -120,7 +203,6 @@ int main()
                 }
                 
             }
-            */
             
             FCC.SetLength(v * dt - 0);
 
@@ -175,12 +257,15 @@ int main()
     output << FCC.lengthOfPhase << std::endl;
     output.close();
 
+    double totalLength{0.0};
+
     // Writing final concentration profile of FCC
     output.open("FCC_Conc.txt");
     
     for (int i = 0; i < FCC.numberOfControlVolumes; i++)
     {
-        output << "C[" << i << "]: \t";
+        totalLength += FCC.deltax[0][i];
+        output << totalLength << "\t";
         for (int j = 0; j < FCC.numberOfSolutes; j++)
         {
             output << FCC.concentration[j][i] << "\t\t";
@@ -192,11 +277,13 @@ int main()
     output.close();
 
     // Writing final concentration profile of Laves
+    totalLength = 0.0;
     output.open("Laves_Conc.txt");
     
     for (int i = 0; i < Laves.numberOfControlVolumes; i++)
     {
-        output << "C[" << i << "]: \t";
+        totalLength += Laves.deltax[0][i];
+        output << totalLength << "\t";
         for (int j = 0; j < Laves.numberOfSolutes; j++)
         {
             output << Laves.concentration[j][i] << "\t\t";

@@ -142,6 +142,14 @@ void Phase::ReadConcentration(std::string concFilename)
     else
     {
         std::cout << "The file " << concFilename << " was not found!\n";
+        std::cout << "Using Default values (0.0)\n";
+        for (int i = 0; i < numberOfControlVolumes; i++)
+        {
+            for (int j = 0; j < numberOfSolutes; j++)
+            {
+                concentration[j][i] = 0.0;
+            }
+        }
     }
     
 
@@ -219,6 +227,15 @@ void Phase::ReadDeltax(std::string deltaxFilename)
     else
     {
         std::cout << "The file " << deltaxFilename << " was not found!\n";
+        std::cout << "Using Default values (1.0)\n";
+        for (int i = 0; i < numberOfControlVolumes; i++)
+        {
+            for (int j = 0; j < numberOfSolutes; j++)
+            {
+                deltax[j][i] = 1.0;
+            }
+            
+        }
     }
     
     deltaxInput.close();
@@ -262,6 +279,15 @@ void Phase::ReadDiffusivities(std::string diffusivityFilename)
     else
     {
         std::cout << "The file " << diffusivityFilename << " was not found!\n";
+        std::cout << "Using Default values (0.0 m2/s)\n";
+        for (int i = 0; i < numberOfControlVolumes; i++)
+        {
+            for (int j = 0; j < numberOfSolutes; j++)
+            {
+                diffusivity[j][i] = 0.0;
+            }
+            
+        }
     }
     
     diffusivityInput.close();
@@ -355,7 +381,7 @@ void Phase::SetLength(double dx)
                 diffusivity[i].push_back(diffusivity[i][numberOfControlVolumes - 1]);
             }
             
-            xcumulative -= deltax[0][0] / 2;
+            xcumulative -= deltax[0][numberOfControlVolumes - 1];
             numberOfControlVolumes += 1;
         }
     }
@@ -386,7 +412,7 @@ void Phase::SetLength(double dx)
                     }
                 }
             }
-            xcumulative += deltax[0][0] / 2;
+            xcumulative += deltax[0][numberOfControlVolumes - 1];
         }
     }
     
