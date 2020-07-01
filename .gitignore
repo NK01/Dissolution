@@ -56,3 +56,8 @@
 *.su
 *.idb
 *.pdb
+
+# Custom Folders
+Mg-Sn
+Ni-Nb
+SingleDissolution
