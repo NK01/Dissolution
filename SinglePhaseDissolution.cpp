@@ -12,6 +12,7 @@
     C++ standard used = c++17
     It is cross-platform capable code
     compiler used = clang (llvm 10.0)
+    command : 
 
     Copyright = Nishant Kumar (2020)
 */
