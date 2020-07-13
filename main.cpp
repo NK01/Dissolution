@@ -200,7 +200,7 @@ int main()
 			    tempVelocity = tempVelocity - (-FCC.frontGradient[i] * FCC.lengthOfPhase);
                 tempVelocity = tempVelocity / (Laves.frontEquilibConc[i] - FCC.frontEquilibConc[i]);
 
-                if (abs(tempVelocity) < abs(v))
+                if (std::abs(tempVelocity) < std::abs(v))
                 {
                     v = tempVelocity;
                 }

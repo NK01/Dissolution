@@ -386,7 +386,7 @@ void Phase::SetLength(double dx)
 
     if (xcumulative < 0)
     {
-        while (abs(xcumulative) > deltax[0][numberOfControlVolumes - 1])
+        while (std::abs(xcumulative) > deltax[0][numberOfControlVolumes - 1])
         {
             if (numberOfControlVolumes > 3)
             {
