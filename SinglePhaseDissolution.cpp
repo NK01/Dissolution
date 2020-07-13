@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <limits>
+#include <chrono>
 
 /*  This code will calculate dissolution of multi-component 
     system. We will utilize single phase diffusion mechanism
@@ -16,6 +17,8 @@
 */
 int main()
 {
+    auto start = std::chrono::steady_clock::now();
+
     // FileStream Output for writing to the file
 	std::ofstream output;
 
@@ -158,7 +161,24 @@ int main()
 
     output.close();
 
-    output.open("Interface_length.txt");
+    output.open("Phase_Fraction.txt");
+
+    double pf{0.0};
+    double cvw{0.0};
+    for (int i = 0; i < FCC.numberOfSolutes; i++)
+    {
+        for (int j = 0; j < FCC.numberOfControlVolumes; j++)
+        {
+            if (FCC.concentration[i][j] > 10.54)
+            {
+                cvw = FCC.concentration[i][j] - 10.54;
+                cvw = cvw / 0.7269;
+                pf += cvw*FCC.deltax[i][j]/100;
+            }
+        }
+        pf = pf / FCC.lengthOfPhase;
+    }
+    output << pf << std::endl;
 
     totalTime = processConditions[0];
     dt = processConditions[1];
@@ -192,13 +212,26 @@ int main()
             }
             std::cout << "] " << static_cast<int>(progress * 100.0) << " %\r" << std::flush;
 
-            output << FCC.lengthOfPhase << std::endl;
+            for (int i = 0; i < FCC.numberOfSolutes; i++)
+            {
+                pf = 0.0;
+                for (int j = 0; j < FCC.numberOfControlVolumes; j++)
+                {
+                    if (FCC.concentration[i][j] > 10.7)
+                    {
+                        cvw = FCC.concentration[i][j] - 10.7;
+                        cvw = cvw / 0.7269;
+                        pf += cvw*FCC.deltax[i][j]/100;
+                    }
+                }
+                pf = pf / FCC.lengthOfPhase;
+            }
+            output << pf << std::endl;
         }
 
         t = t + dt;
     }
 
-    output << FCC.lengthOfPhase << std::endl;
     output.close();
 
     double totalLength{0.0};
@@ -221,6 +254,10 @@ int main()
     output.close();
 
     std::cout << "\nSimulation completed\n";
+
+    auto end = std::chrono::steady_clock::now();
+    auto diff = end - start;
+    std::cout << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
 
     return 0;
 }

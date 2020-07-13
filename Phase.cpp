@@ -297,16 +297,16 @@ void Phase::ReadDiffusivities(std::string diffusivityFilename)
 void Phase::Diffusion(double dt, int index)
 {
     double temp = dt;
+    double weight = 0.0;
 
 	std::vector<double> a = std::vector <double>(numberOfControlVolumes);
 	std::vector<double> b = std::vector <double>(numberOfControlVolumes);
 	std::vector<double> c = std::vector <double>(numberOfControlVolumes);
 	std::vector<double> d = std::vector <double>(numberOfControlVolumes);
-	std::vector<double> cnew = std::vector <double>(numberOfControlVolumes);
-	std::vector<double> dnew = std::vector <double>(numberOfControlVolumes);
 
     for (int j = 0; j < numberOfSolutes; j++)
     {
+        // Populating the Coefficients
         for (int i = 0; i < numberOfControlVolumes; i++)
         {
             if (i == 0)
@@ -332,22 +332,20 @@ void Phase::Diffusion(double dt, int index)
             }
         }
 
-        // Coefficient calculations
-        cnew[0] = c[0] / b[0];
-        dnew[0] = d[0] / b[0];
-
-        for (int i = 1; i < numberOfControlVolumes; i++)
+        // Forward Sweep
+        for (int i = 0; i < numberOfControlVolumes - 1; i++)
         {
-            cnew[i] = c[i] / (b[i] - a[i] * cnew[i - 1]);
-            dnew[i] = (d[i] - a[i] * dnew[i - 1]) / (b[i] - a[i] * cnew[i - 1]);
+            weight = a[i+1]/b[i];
+            b[i+1] -= weight*c[i];
+            d[i+1] -= weight*d[i];
         }
 
         // Back Substitution
-        concentration[j][numberOfControlVolumes - 1] = dnew[numberOfControlVolumes - 1];
+        concentration[j][numberOfControlVolumes - 1] = d[numberOfControlVolumes - 1]/b[numberOfControlVolumes - 1];
 
         for (int i = numberOfControlVolumes - 2; i >= 0; i--)
         {
-            concentration[j][i] = dnew[i] - cnew[i] * concentration[j][i + 1];
+            concentration[j][i] = (d[i] - c[i] * concentration[j][i + 1])/b[i];
         }
 
         if (index != -1)

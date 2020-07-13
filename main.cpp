@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <limits>
+#include <chrono>
 
 /*  This code will calculate dissolution in the two phase 
     system. We will utilize moving boundary algorithm
@@ -16,6 +17,8 @@
 */
 int main()
 {
+    auto start = std::chrono::steady_clock::now();
+
     // FileStream Output for writing to the file
 	std::ofstream output;
 
@@ -295,6 +298,10 @@ int main()
     output.close();
 
     std::cout << "\nSimulation completed\n";
+
+    auto end = std::chrono::steady_clock::now();
+    auto diff = end - start;
+    std::cout << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
 
     return 0;
 }
