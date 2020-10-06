@@ -6,14 +6,14 @@
 Phase::Phase()
 {
     numberOfSolutes = 1;
-	numberOfControlVolumes = 3;
+    numberOfControlVolumes = 3;
     lengthOfPhase = 100; // in microns
     xcumulative = 0;
 
-    backGradient = std::vector <double>(numberOfSolutes);
-    frontGradient = std::vector <double>(numberOfSolutes);
-    backEquilibConc = std::vector <double>(numberOfSolutes);
-    frontEquilibConc = std::vector <double>(numberOfSolutes);
+    backGradient = std::vector<double>(numberOfSolutes);
+    frontGradient = std::vector<double>(numberOfSolutes);
+    backEquilibConc = std::vector<double>(numberOfSolutes);
+    frontEquilibConc = std::vector<double>(numberOfSolutes);
 
     diffusivity = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
     concentration = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
@@ -25,7 +25,6 @@ Phase::Phase()
         {
             deltax[i][j] = 1.0;
         }
-        
     }
 }
 
@@ -33,26 +32,25 @@ Phase::Phase()
 Phase::Phase(int nElements)
 {
     numberOfSolutes = nElements;
-	numberOfControlVolumes = 3;
+    numberOfControlVolumes = 3;
     lengthOfPhase = 100; // in microns
     xcumulative = 0;
 
-    backGradient = std::vector <double>(numberOfSolutes);
-    frontGradient = std::vector <double>(numberOfSolutes);
-    backEquilibConc = std::vector <double>(numberOfSolutes);
-    frontEquilibConc = std::vector <double>(numberOfSolutes);
+    backGradient = std::vector<double>(numberOfSolutes);
+    frontGradient = std::vector<double>(numberOfSolutes);
+    backEquilibConc = std::vector<double>(numberOfSolutes);
+    frontEquilibConc = std::vector<double>(numberOfSolutes);
 
     diffusivity = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
     concentration = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
     deltax = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
-    
+
     for (int i = 0; i < numberOfSolutes; i++)
     {
         for (int j = 0; j < numberOfControlVolumes; j++)
         {
             deltax[i][j] = 1.0;
         }
-        
     }
 }
 
@@ -60,19 +58,19 @@ Phase::Phase(int nElements)
 Phase::Phase(int nElements, int nCont)
 {
     numberOfSolutes = nElements;
-	numberOfControlVolumes = nCont;
+    numberOfControlVolumes = nCont;
     lengthOfPhase = 100; // in microns
     xcumulative = 0;
 
-    backGradient = std::vector <double>(numberOfSolutes);
-    frontGradient = std::vector <double>(numberOfSolutes);
-    backEquilibConc = std::vector <double>(numberOfSolutes);
-    frontEquilibConc = std::vector <double>(numberOfSolutes);
+    backGradient = std::vector<double>(numberOfSolutes);
+    frontGradient = std::vector<double>(numberOfSolutes);
+    backEquilibConc = std::vector<double>(numberOfSolutes);
+    frontEquilibConc = std::vector<double>(numberOfSolutes);
 
     diffusivity = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
     concentration = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
     deltax = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
-    
+
     for (int i = 0; i < numberOfSolutes; i++)
     {
         for (int j = 0; j < numberOfControlVolumes; j++)
@@ -85,7 +83,7 @@ Phase::Phase(int nElements, int nCont)
 // Function to read concentration profile
 void Phase::ReadConcentration(std::string concFilename)
 {
-    std::ifstream concInput;
+    std::ifstream concInput{};
     concInput.open(concFilename);
 
     if (concInput.is_open())
@@ -97,9 +95,9 @@ void Phase::ReadConcentration(std::string concFilename)
         int columns{0};
 
         // This loop will calculate the number of rows and columns in the excel file
-        while(concInput)
+        while (concInput)
         {
-            std::string buff;
+            std::string buff{};
             std::getline(concInput, buff);
             int foundPos{0};
             while (foundPos != std::string::npos)
@@ -109,22 +107,21 @@ void Phase::ReadConcentration(std::string concFilename)
                 {
                     columns++;
                 }
-                
             }
 
             rows++;
         }
         rows = rows - 2;
 
-        if (rows >=3 && columns >= 1)
+        if (rows >= 3 && columns >= 1)
         {
             numberOfSolutes = columns;
             numberOfControlVolumes = rows;
 
-            backGradient = std::vector <double>(numberOfSolutes);
-            frontGradient = std::vector <double>(numberOfSolutes);
-            backEquilibConc = std::vector <double>(numberOfSolutes);
-            frontEquilibConc = std::vector <double>(numberOfSolutes);
+            backGradient = std::vector<double>(numberOfSolutes);
+            frontGradient = std::vector<double>(numberOfSolutes);
+            backEquilibConc = std::vector<double>(numberOfSolutes);
+            frontEquilibConc = std::vector<double>(numberOfSolutes);
 
             diffusivity = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
             concentration = std::vector<std::vector<double>>(numberOfSolutes, std::vector<double>(numberOfControlVolumes));
@@ -151,7 +148,6 @@ void Phase::ReadConcentration(std::string concFilename)
             }
         }
     }
-    
 
     concInput.close();
 
@@ -162,9 +158,9 @@ void Phase::ReadConcentration(std::string concFilename)
         int row{0};
         int column{0};
         std::string value{"undefined"};
-        while(concInput)
+        while (concInput)
         {
-            std::string buff;
+            std::string buff{};
             std::getline(concInput, buff);
 
             column = 0;
@@ -176,7 +172,7 @@ void Phase::ReadConcentration(std::string concFilename)
                 {
                     finalPos = buff.find_first_of(",", finalPos + 1);
                     value = buff.substr(initialPos, (finalPos - initialPos));
-                    concentration[column][row-1] = std::stod(value);
+                    concentration[column][row - 1] = std::stod(value);
                     initialPos = finalPos + 1;
                     column++;
                 }
@@ -185,25 +181,25 @@ void Phase::ReadConcentration(std::string concFilename)
             row++;
         }
     }
-    
+
     concInput.close();
 }
 
 // Function to read deltaX profile
 void Phase::ReadDeltax(std::string deltaxFilename)
 {
-    std::ifstream deltaxInput;
+    std::ifstream deltaxInput{};
 
     deltaxInput.open(deltaxFilename);
 
     if (deltaxInput.is_open())
     {
-        int row{ 0 };
-        int column{ 0 };
+        int row{0};
+        int column{0};
         std::string value{"undefined"};
-        while(deltaxInput)
+        while (deltaxInput)
         {
-            std::string buff;
+            std::string buff{};
             std::getline(deltaxInput, buff);
 
             column = 0;
@@ -215,7 +211,7 @@ void Phase::ReadDeltax(std::string deltaxFilename)
                 {
                     finalPos = buff.find_first_of(",", finalPos + 1);
                     value = buff.substr(initialPos, (finalPos - initialPos));
-                    deltax[column][row-1] = std::stod(value);
+                    deltax[column][row - 1] = std::stod(value);
                     initialPos = finalPos + 1;
                     column++;
                 }
@@ -234,17 +230,16 @@ void Phase::ReadDeltax(std::string deltaxFilename)
             {
                 deltax[j][i] = 1.0;
             }
-            
         }
     }
-    
+
     deltaxInput.close();
 }
 
 // Function to read diffusivity data
 void Phase::ReadDiffusivities(std::string diffusivityFilename)
 {
-    std::ifstream diffusivityInput;
+    std::ifstream diffusivityInput{};
 
     diffusivityInput.open(diffusivityFilename);
 
@@ -253,9 +248,9 @@ void Phase::ReadDiffusivities(std::string diffusivityFilename)
         int row{0};
         int column{0};
         std::string value{"undefined"};
-        while(diffusivityInput)
+        while (diffusivityInput)
         {
-            std::string buff;
+            std::string buff{};
             std::getline(diffusivityInput, buff);
 
             column = 0;
@@ -267,7 +262,7 @@ void Phase::ReadDiffusivities(std::string diffusivityFilename)
                 {
                     finalPos = buff.find_first_of(",", finalPos + 1);
                     value = buff.substr(initialPos, (finalPos - initialPos));
-                    diffusivity[column][row-1] = std::stod(value);
+                    diffusivity[column][row - 1] = std::stod(value);
                     initialPos = finalPos + 1;
                     column++;
                 }
@@ -286,23 +281,22 @@ void Phase::ReadDiffusivities(std::string diffusivityFilename)
             {
                 diffusivity[j][i] = 0.0;
             }
-            
         }
     }
-    
+
     diffusivityInput.close();
 }
 
 // Function to perform diffusion
 void Phase::Diffusion(double dt, int index)
 {
-    double temp = dt;
-    double weight = 0.0;
+    double temp{dt};
+    double weight{0.0};
 
-	std::vector<double> a = std::vector <double>(numberOfControlVolumes);
-	std::vector<double> b = std::vector <double>(numberOfControlVolumes);
-	std::vector<double> c = std::vector <double>(numberOfControlVolumes);
-	std::vector<double> d = std::vector <double>(numberOfControlVolumes);
+    std::vector<double> a = std::vector<double>(numberOfControlVolumes);
+    std::vector<double> b = std::vector<double>(numberOfControlVolumes);
+    std::vector<double> c = std::vector<double>(numberOfControlVolumes);
+    std::vector<double> d = std::vector<double>(numberOfControlVolumes);
 
     for (int j = 0; j < numberOfSolutes; j++)
     {
@@ -335,17 +329,17 @@ void Phase::Diffusion(double dt, int index)
         // Forward Sweep
         for (int i = 0; i < numberOfControlVolumes - 1; i++)
         {
-            weight = a[i+1]/b[i];
-            b[i+1] -= weight*c[i];
-            d[i+1] -= weight*d[i];
+            weight = a[i + 1] / b[i];
+            b[i + 1] -= weight * c[i];
+            d[i + 1] -= weight * d[i];
         }
 
         // Back Substitution
-        concentration[j][numberOfControlVolumes - 1] = d[numberOfControlVolumes - 1]/b[numberOfControlVolumes - 1];
+        concentration[j][numberOfControlVolumes - 1] = d[numberOfControlVolumes - 1] / b[numberOfControlVolumes - 1];
 
         for (int i = numberOfControlVolumes - 2; i >= 0; i--)
         {
-            concentration[j][i] = (d[i] - c[i] * concentration[j][i + 1])/b[i];
+            concentration[j][i] = (d[i] - c[i] * concentration[j][i + 1]) / b[i];
         }
 
         if (index != -1)
@@ -358,7 +352,6 @@ void Phase::Diffusion(double dt, int index)
 
         frontGradient[j] = (3 * diffusivity[j][numberOfControlVolumes - 1] * concentration[j][numberOfControlVolumes - 1] - 4 * diffusivity[j][numberOfControlVolumes - 2] * concentration[j][numberOfControlVolumes - 2] + diffusivity[j][numberOfControlVolumes - 3] * concentration[j][numberOfControlVolumes - 3]) / 2 / deltax[j][numberOfControlVolumes - 1] / lengthOfPhase;
         backGradient[j] = (3 * diffusivity[j][0] * concentration[j][0] - 4 * diffusivity[j][1] * concentration[j][1] + diffusivity[j][2] * concentration[j][2]) / 2 / deltax[j][0] / lengthOfPhase;
-
     }
 }
 
@@ -378,7 +371,7 @@ void Phase::SetLength(double dx)
                 deltax[i].push_back(deltax[0][numberOfControlVolumes - 1]);
                 diffusivity[i].push_back(diffusivity[i][numberOfControlVolumes - 1]);
             }
-            
+
             xcumulative -= deltax[0][numberOfControlVolumes - 1];
             numberOfControlVolumes += 1;
         }
@@ -399,7 +392,7 @@ void Phase::SetLength(double dx)
                 numberOfControlVolumes -= 1;
             }
             else
-            {   
+            {
                 if (lengthOfPhase > 0)
                 {
                     for (int i = 0; i < numberOfSolutes; i++)
@@ -413,5 +406,4 @@ void Phase::SetLength(double dx)
             xcumulative += deltax[0][numberOfControlVolumes - 1];
         }
     }
-    
 }
